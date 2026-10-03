@@ -23,6 +23,10 @@ export enum Permission {
   BOOKING_CANCEL_OWN = 'booking:cancel:own',
   /** Approve or reject a pending booking. */
   BOOKING_REVIEW = 'booking:review',
+
+  ACTIVITY_READ = 'activity:read',
+  ACTIVITY_CREATE = 'activity:create',
+  ACTIVITY_UPDATE = 'activity:update',
 }
 
 /** Students book rooms for themselves and follow their own requests. */
@@ -31,10 +35,11 @@ const STUDENT_PERMISSIONS: Permission[] = [
   Permission.BOOKING_READ_OWN,
   Permission.BOOKING_CREATE,
   Permission.BOOKING_CANCEL_OWN,
+  Permission.ACTIVITY_READ,
 ];
 
 /** Alumni may look at rooms but not book them. */
-const ALUMNI_PERMISSIONS: Permission[] = [Permission.ROOM_READ];
+const ALUMNI_PERMISSIONS: Permission[] = [Permission.ROOM_READ, Permission.ACTIVITY_READ];
 
 /** Staff run the bookings: they see and review every request. */
 const STAFF_PERMISSIONS: Permission[] = [
@@ -45,6 +50,9 @@ const STAFF_PERMISSIONS: Permission[] = [
   Permission.BOOKING_CANCEL_ANY,
   Permission.BOOKING_CANCEL_OWN,
   Permission.BOOKING_REVIEW,
+  Permission.ACTIVITY_READ,
+  Permission.ACTIVITY_CREATE,
+  Permission.ACTIVITY_UPDATE,
 ];
 
 const ADMIN_PERMISSIONS: Permission[] = Object.values(Permission);

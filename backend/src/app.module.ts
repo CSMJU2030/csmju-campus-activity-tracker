@@ -10,6 +10,7 @@ import configuration from './config/configuration';
 import { validateEnv } from './config/env.validation';
 import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ActivitiesModule } from './activities/activities.module';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { PrismaModule } from './prisma/prisma.module';
     PrismaModule,
     AuthModule,
     HealthModule,
-    // TODO: เพิ่ม ActivitiesModule ตอนเขียน API กิจกรรม
+    ActivitiesModule,
   ],
   providers: [
     // Every route is authenticated unless explicitly marked @Public().
