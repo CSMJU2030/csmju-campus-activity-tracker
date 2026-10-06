@@ -4,5 +4,5 @@ set -e
 echo "[entrypoint] applying database migrations ..."
 npx prisma migrate deploy
 
-echo "[entrypoint] starting CSMJU Demo Subsystem"
+echo "[entrypoint] starting Campus Activity Tracker"
 exec "$@"

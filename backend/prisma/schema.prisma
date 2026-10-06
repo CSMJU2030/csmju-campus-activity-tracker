@@ -1,12 +1,12 @@
 // CSMJU Campus Activity Tracker - OWN database schema.
 //
+// Scope (ตัดสินแล้วโดย PL/ทีม): ระบบแจ้งเตือน/ประกาศกิจกรรมเท่านั้น
+// ไม่มีการลงทะเบียน เช็คชื่อ หรือคำนวณชั่วโมงกิจกรรมในระบบนี้
+// ปุ่ม "สมัคร" แค่พาไปหน้าแบบฟอร์มภายนอกที่ผู้จัดกิจกรรมเตรียมไว้เอง
+//
 // Naming follows the CSMJU2030 Subsystem Standard: PostgreSQL tables are plural
 // snake_case and every column is snake_case through @map, while Prisma/TypeScript
-// field names stay camelCase. Application code is therefore unchanged.
-//
-// This database belongs to the subsystem only. It never contains Core Hub
-// users, passwords, sessions or key material. `*CoreUserId` fields are
-// EXTERNAL identity references to a Core Hub user id (`sub`) - nothing more.
+// field names stay camelCase.
 
 generator client {
   provider     = "prisma-client"
@@ -14,29 +14,13 @@ generator client {
   moduleFormat = "cjs"
 }
 
-// The connection string is supplied by prisma.config.ts (CLI) and by the
-// PrismaPg adapter in PrismaService (runtime) - always this subsystem's own
-// DATABASE_URL, never the Core Hub database.
 datasource db {
   provider = "postgresql"
-}
-
-enum HourType {
-  UNIVERSITY // มหาลัย
-  DEPARTMENT // สาขา
-  FREE       // เสรี
 }
 
 enum ActivityStatus {
   DRAFT
   PUBLISHED
-  CANCELLED
-}
-
-enum RegistrationStatus {
-  REGISTERED
-  ATTENDED
-  ABSENT
   CANCELLED
 }
 
@@ -50,101 +34,18 @@ model Activity {
   startsAt DateTime @map("starts_at")
   endsAt   DateTime @map("ends_at")
 
-  hoursAwarded Decimal  @map("hours_awarded") @db.Decimal(4, 2)
-  hourType     HourType @map("hour_type")
-
-  capacity             Int?
+  /// ลิงก์ไปหน้าสมัคร/แบบฟอร์มของผู้จัดกิจกรรม (ภายนอกระบบนี้)
+  registrationUrl      String?   @map("registration_url")
   registrationDeadline DateTime? @map("registration_deadline")
 
   status ActivityStatus @default(DRAFT)
 
-  /// Core Hub `sub` of the admin who created it - never a local account.
+  /// Core Hub `sub` ของแอดมินที่โพส - ไม่ใช่ local account
   createdByCoreUserId String @map("created_by_core_user_id")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  registrations Registration[]
-  hourRecords   HourRecord[]
-  checkInToken  CheckInToken? @relation("ActivityCheckInToken")
-
   @@index([status, startsAt])
-  @@index([hourType])
   @@map("activities")
-}
-
-model Registration {
-  id String @id @default(uuid())
-
-  activityId String   @map("activity_id")
-  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
-
-  /// Who registered: the Core Hub `sub` claim, never a local account.
-  studentCoreUserId String @map("student_core_user_id")
-  /// Email claim at registration time, kept so staff can see who registered.
-  email             String
-
-  status RegistrationStatus @default(REGISTERED)
-
-  registeredAt DateTime  @default(now()) @map("registered_at")
-  checkedInAt  DateTime? @map("checked_in_at")
-  /// Core Hub `sub` of the admin who checked them in (null if via QR).
-  checkedInByCoreUserId String? @map("checked_in_by_core_user_id")
-
-  hourRecord HourRecord? @relation("RegistrationHourRecord")
-
-  @@unique([activityId, studentCoreUserId])
-  @@index([studentCoreUserId])
-  @@index([activityId, status])
-  @@map("registrations")
-}
-
-// Created automatically only when a Registration moves to ATTENDED.
-model HourRecord {
-  id String @id @default(uuid())
-
-  registrationId String       @unique @map("registration_id")
-  registration   Registration @relation("RegistrationHourRecord", fields: [registrationId], references: [id], onDelete: Cascade)
-
-  activityId String   @map("activity_id")
-  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
-
-  studentCoreUserId String @map("student_core_user_id")
-
-  // Copied from Activity at record time, so later edits to Activity don't
-  // silently change hours a student already earned.
-  hourType HourType @map("hour_type")
-  hours    Decimal  @db.Decimal(4, 2)
-
-  recordedAt DateTime @default(now()) @map("recorded_at")
-
-  @@index([studentCoreUserId, hourType])
-  @@map("hour_records")
-}
-
-// Minimum yearly hour requirement per category - for progress display only,
-// no automatic reminder logic.
-model HourRequirement {
-  id           String   @id @default(uuid())
-  academicYear Int      @map("academic_year")
-  hourType     HourType @map("hour_type")
-  minHours     Decimal  @map("min_hours") @db.Decimal(5, 2)
-
-  @@unique([academicYear, hourType])
-  @@map("hour_requirements")
-}
-
-// QR check-in token per activity (optional feature, can ship later).
-model CheckInToken {
-  id String @id @default(uuid())
-
-  activityId String   @unique @map("activity_id")
-  activity   Activity @relation("ActivityCheckInToken", fields: [activityId], references: [id], onDelete: Cascade)
-
-  token     String    @unique @default(uuid())
-  expiresAt DateTime? @map("expires_at")
-
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@map("check_in_tokens")
 }

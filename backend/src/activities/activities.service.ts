@@ -18,9 +18,7 @@ export class ActivitiesService {
         location: dto.location,
         startsAt: new Date(dto.startsAt),
         endsAt: new Date(dto.endsAt),
-        hoursAwarded: dto.hoursAwarded,
-        hourType: dto.hourType,
-        capacity: dto.capacity,
+        registrationUrl: dto.registrationUrl,
         registrationDeadline: dto.registrationDeadline
           ? new Date(dto.registrationDeadline)
           : undefined,
@@ -30,10 +28,7 @@ export class ActivitiesService {
   }
 
   async findAll(query: QueryActivitiesDto) {
-    const where = {
-      ...(query.status ? { status: query.status } : {}),
-      ...(query.hourType ? { hourType: query.hourType } : {}),
-    };
+    const where = query.status ? { status: query.status } : {};
 
     const [items, total] = await Promise.all([
       this.prisma.activity.findMany({
