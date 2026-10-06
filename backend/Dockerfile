@@ -12,6 +12,8 @@ ENV DATABASE_URL=postgresql://build:build@localhost:5432/build_only
 
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY backend/package.json backend/
+COPY backend/prisma backend/prisma
+COPY backend/prisma.config.ts backend/prisma.config.ts
 RUN pnpm install --frozen-lockfile --filter backend...
 
 COPY backend/ backend/
@@ -27,20 +29,20 @@ RUN corepack enable pnpm
 
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY backend/package.json backend/
-RUN pnpm install --frozen-lockfile --prod --filter backend... --ignore-scripts \
+COPY backend/prisma backend/prisma
+COPY backend/prisma.config.ts backend/prisma.config.ts
+RUN pnpm install --frozen-lockfile --prod --filter backend... \
  && pnpm store prune
 
 # dist/ มีทั้งโค้ดที่ compile แล้ว (dist/src) และ Prisma client (dist/generated/prisma)
-COPY --from=builder /app/backend/dist ./backend/dist
-COPY backend/prisma ./backend/prisma
-COPY backend/prisma.config.ts ./backend/prisma.config.ts
-COPY backend/docker/entrypoint.sh ./backend/docker/entrypoint.sh
+COPY --from=builder --chown=node:node /app/backend/dist ./backend/dist
+COPY --chown=node:node backend/docker/entrypoint.sh ./backend/docker/entrypoint.sh
 
-RUN chmod +x ./backend/docker/entrypoint.sh && chown -R node:node /app
+RUN chmod +x ./backend/docker/entrypoint.sh
 USER node
 WORKDIR /app/backend
 
-EXPOSE 4201
+EXPOSE 4000
 
 ENTRYPOINT ["./docker/entrypoint.sh"]
 CMD ["node", "dist/src/main.js"]

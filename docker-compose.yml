@@ -1,0 +1,90 @@
+name: csmju-campus-activity-tracker
+
+x-hardening: &hardening
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: ['no-new-privileges:true']
+  restart: unless-stopped
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: csmju-campus-activity-tracker-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: campus_activity_tracker
+    ports:
+      - '127.0.0.1:5435:5432'
+    volumes:
+      - campus-activity-tracker-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d campus_activity_tracker']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    <<: *hardening
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: csmju-campus-activity-tracker-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Local Core Hub exposes JWKS over HTTP; the deployed server uses production.
+      NODE_ENV: development
+      PORT: 4000
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/campus_activity_tracker?schema=public
+      DATABASE_POOL_MAX: 5
+      CORE_HUB_URL: http://host.docker.internal:3000
+      CORE_HUB_JWKS_URL: http://host.docker.internal:3000/api/v1/.well-known/jwks.json
+      CORE_HUB_ISSUER: core-hub
+      CORE_HUB_AUDIENCE: csmju2030
+      SUBSYSTEM_ID: csmju-campus-activity-tracker
+      SUBSYSTEM_NAME: Campus Activity Tracker
+      TZ: Asia/Bangkok
+      NPM_CONFIG_CACHE: /tmp/.npm
+    tmpfs: ['/tmp:size=32m,uid=1000,gid=1000']
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:4000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  web:
+    <<: *hardening
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        BACKEND_URL: http://api:4000
+        CORE_HUB_WEB_URL: http://localhost:3100
+    container_name: csmju-campus-activity-tracker-web
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      CORE_HUB_WEB_URL: http://localhost:3100
+      SUBSYSTEM_ID: csmju-campus-activity-tracker
+      TZ: Asia/Bangkok
+    tmpfs:
+      - '/tmp:size=32m,uid=1000,gid=1000'
+      - '/app/frontend/.next/cache:size=64m,uid=1000,gid=1000'
+    ports:
+      - '127.0.0.1:3202:3000'
+
+volumes:
+  campus-activity-tracker-db-data:

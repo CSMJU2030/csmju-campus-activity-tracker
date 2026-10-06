@@ -1,6 +1,4 @@
-import { Type } from 'class-transformer';
-import { IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, Min } from 'class-validator';
-import { HourType } from '../../../generated/prisma/client';
+import { IsDateString, IsOptional, IsString, IsUrl } from 'class-validator';
 
 export class CreateActivityDto {
   @IsString()
@@ -20,18 +18,9 @@ export class CreateActivityDto {
   @IsDateString()
   endsAt!: string;
 
-  @IsNumber()
-  @Min(0)
-  hoursAwarded!: number;
-
-  @IsEnum(HourType)
-  hourType!: HourType;
-
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  capacity?: number;
+  @IsUrl()
+  registrationUrl?: string;
 
   @IsOptional()
   @IsDateString()

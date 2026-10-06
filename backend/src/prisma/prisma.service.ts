@@ -15,6 +15,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   constructor() {
     const adapter = new PrismaPg({
       connectionString: process.env.DATABASE_URL,
+      max: Number(process.env.DATABASE_POOL_MAX) || 5,
     });
 
     super({ adapter });
@@ -22,7 +23,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   async onModuleInit(): Promise<void> {
     await this.$connect();
-    this.logger.log('Connected to the demo subsystem database');
+    this.logger.log('Connected to the campus activity tracker database');
   }
 
   async onModuleDestroy(): Promise<void> {

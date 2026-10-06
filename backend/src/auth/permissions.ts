@@ -29,7 +29,7 @@ export enum Permission {
   ACTIVITY_UPDATE = 'activity:update',
 }
 
-/** Students book rooms for themselves and follow their own requests. */
+/** Students read activity announcements. */
 const STUDENT_PERMISSIONS: Permission[] = [
   Permission.ROOM_READ,
   Permission.BOOKING_READ_OWN,
@@ -41,7 +41,7 @@ const STUDENT_PERMISSIONS: Permission[] = [
 /** Alumni may look at rooms but not book them. */
 const ALUMNI_PERMISSIONS: Permission[] = [Permission.ROOM_READ, Permission.ACTIVITY_READ];
 
-/** Staff run the bookings: they see and review every request. */
+/** Staff post and manage activity announcements. */
 const STAFF_PERMISSIONS: Permission[] = [
   Permission.ROOM_READ,
   Permission.BOOKING_READ_ANY,

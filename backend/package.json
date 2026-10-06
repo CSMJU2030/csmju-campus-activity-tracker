@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "CSMJU Demo Subsystem - independent demo subsystem consuming CSMJU2030 Core Hub identity (RS256 + JWKS)",
+  "description": "CSMJU Campus Activity Tracker subsystem using CSMJU2030 Core Hub identity (RS256 + JWKS)",
   "license": "MIT",
   "private": true,
   "scripts": {
