@@ -1,4 +1,5 @@
-import { IsDateString, IsOptional, IsString, IsUrl } from 'class-validator';
+import { IsDateString, IsEnum, IsOptional, IsString, IsUrl } from 'class-validator';
+import { ActivityStatus } from '../../../generated/prisma/client';
 
 export class CreateActivityDto {
   @IsString()
@@ -25,4 +26,8 @@ export class CreateActivityDto {
   @IsOptional()
   @IsDateString()
   registrationDeadline?: string;
+
+  @IsOptional()
+  @IsEnum(ActivityStatus)
+  status?: ActivityStatus;
 }

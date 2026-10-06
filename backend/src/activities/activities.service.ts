@@ -22,6 +22,7 @@ export class ActivitiesService {
         registrationDeadline: dto.registrationDeadline
           ? new Date(dto.registrationDeadline)
           : undefined,
+        status: dto.status,
         createdByCoreUserId,
       },
     });
