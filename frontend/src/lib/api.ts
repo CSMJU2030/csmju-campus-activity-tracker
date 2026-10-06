@@ -86,6 +86,16 @@ export const getMe = () => call<Me>("/api/v1/me");
 export const listActivities = (status?: ActivityStatus) =>
   call<Activity[]>(`/api/v1/activities?limit=100${status ? `&status=${status}` : ""}`);
 export const getActivity = (id: string) => call<Activity>(`/api/v1/activities/${encodeURIComponent(id)}`);
+export const createActivity = (activity: {
+  title: string;
+  description?: string;
+  location?: string;
+  startsAt: string;
+  endsAt: string;
+  registrationUrl?: string;
+  registrationDeadline?: string;
+  status: ActivityStatus;
+}) => call<Activity>("/api/v1/activities", { method: "POST", body: activity });
 
 /** GET /api/health — public. */
 export async function getHealth(): Promise<{ status: string; service?: string } | null> {

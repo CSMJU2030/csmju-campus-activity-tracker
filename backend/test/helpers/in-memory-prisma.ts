@@ -158,7 +158,16 @@ class Table {
     }
 
     const now = new Date();
-    const row = { id: randomUUID(), ...this.defaults(), ...data, createdAt: now, updatedAt: now };
+    const definedData = Object.fromEntries(
+      Object.entries(data).filter(([, value]) => value !== undefined),
+    );
+    const row = {
+      id: randomUUID(),
+      ...this.defaults(),
+      ...definedData,
+      createdAt: now,
+      updatedAt: now,
+    };
     this.rows.push(row);
     return this.withInclude(row, include);
   }
@@ -195,14 +204,14 @@ class Table {
   }
 }
 
-/** Rooms live in (fake) Core Hub, so the subsystem database holds bookings only. */
+/** In-memory table double for the subsystem's own activity records. */
 export class InMemoryPrisma {
-  booking = new Table([], [], () => ({
-    status: 'PENDING',
-    purpose: null,
-    reviewedByCoreUserId: null,
-    reviewNote: null,
-    reviewedAt: null,
+  activity = new Table([], [], () => ({
+    description: null,
+    location: null,
+    registrationUrl: null,
+    registrationDeadline: null,
+    status: 'DRAFT',
   }));
 
   async $connect(): Promise<void> {}
@@ -211,6 +220,6 @@ export class InMemoryPrisma {
   async onModuleDestroy(): Promise<void> {}
 
   reset(): void {
-    this.booking.rows = [];
+    this.activity.rows = [];
   }
 }

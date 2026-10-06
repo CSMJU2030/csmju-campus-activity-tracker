@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { canManageActivities, type Me } from "../../lib/api";
 
-type NavKey = "activities";
+type NavKey = "activities" | "manage";
 
 const CORE_HUB_WEB_URL = process.env.CORE_HUB_WEB_URL ?? "http://127.0.0.1:3100";
 
@@ -18,6 +18,9 @@ export default function Shell({
   const nav: Array<{ key: NavKey; href: string; label: string }> = [
     { key: "activities", href: "/", label: "กิจกรรมทั้งหมด" },
   ];
+  if (canManageActivities(me)) {
+    nav.push({ key: "manage", href: "/manage", label: "โพสต์กิจกรรม" });
+  }
 
   return (
     <>
