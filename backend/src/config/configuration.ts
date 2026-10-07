@@ -33,7 +33,7 @@ export default (): AppConfig => {
 
   return {
     nodeEnv: process.env.NODE_ENV ?? 'development',
-    port: num(process.env.PORT, 4201),
+    port: num(process.env.PORT, 4204),
     subsystemId: process.env.SUBSYSTEM_ID ?? 'csmju-campus-activity-tracker',
     subsystemName: process.env.SUBSYSTEM_NAME ?? 'Campus Activity Tracker',
     coreHub: {

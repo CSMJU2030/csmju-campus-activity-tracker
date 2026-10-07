@@ -21,6 +21,7 @@ export type Me = {
 };
 
 export type ActivityStatus = "DRAFT" | "PUBLISHED" | "CANCELLED";
+export type ActivityHourCategory = "UNIVERSITY" | "FACULTY" | "FREE";
 
 export type Activity = {
   id: string;
@@ -31,6 +32,8 @@ export type Activity = {
   endsAt: string;
   registrationUrl: string | null;
   registrationDeadline: string | null;
+  activityHourCategory: ActivityHourCategory | null;
+  activityHours: number | null;
   status: ActivityStatus;
   createdByCoreUserId: string;
   createdAt: string;
@@ -94,8 +97,27 @@ export const createActivity = (activity: {
   endsAt: string;
   registrationUrl?: string;
   registrationDeadline?: string;
+  activityHourCategory?: ActivityHourCategory;
+  activityHours?: number;
   status: ActivityStatus;
 }) => call<Activity>("/api/v1/activities", { method: "POST", body: activity });
+export const updateActivity = (
+  id: string,
+  activity: {
+    title: string;
+    description: string | null;
+    location: string | null;
+    startsAt: string;
+    endsAt: string;
+    registrationUrl: string | null;
+    registrationDeadline: string | null;
+    activityHourCategory: ActivityHourCategory | null;
+    activityHours: number | null;
+    status: ActivityStatus;
+  },
+) => call<Activity>(`/api/v1/activities/${encodeURIComponent(id)}`, { method: "PATCH", body: activity });
+export const deleteActivity = (id: string) =>
+  call<Activity>(`/api/v1/activities/${encodeURIComponent(id)}`, { method: "DELETE" });
 
 /** GET /api/health — public. */
 export async function getHealth(): Promise<{ status: string; service?: string } | null> {

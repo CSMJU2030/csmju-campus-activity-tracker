@@ -48,6 +48,13 @@ export function formatTime(iso: string): string {
   }).format(new Date(iso));
 }
 
+export function toBangkokDateTimeLocal(iso: string): string {
+  const parts = DATE_TIME_PARTS_FORMATTER.formatToParts(new Date(iso));
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((item) => item.type === type)?.value ?? "";
+  return `${part("year")}-${part("month")}-${part("day")}T${part("hour")}:${part("minute")}`;
+}
+
 /** e.g. "จ. 29 ก.ย. 2569 · 13:00–15:00" */
 export function formatSlot(startsAt: string, endsAt: string): string {
   return `${formatDate(startsAt)} · ${formatTime(startsAt)}–${formatTime(endsAt)}`;

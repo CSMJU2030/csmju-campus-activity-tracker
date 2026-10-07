@@ -24,6 +24,12 @@ enum ActivityStatus {
   CANCELLED
 }
 
+enum ActivityHourCategory {
+  UNIVERSITY
+  FACULTY
+  FREE
+}
+
 model Activity {
   id String @id @default(uuid())
 
@@ -37,6 +43,9 @@ model Activity {
   /// ลิงก์ไปหน้าสมัคร/แบบฟอร์มของผู้จัดกิจกรรม (ภายนอกระบบนี้)
   registrationUrl      String?   @map("registration_url")
   registrationDeadline DateTime? @map("registration_deadline")
+
+  activityHourCategory ActivityHourCategory? @map("activity_hour_category")
+  activityHours        Float?                @map("activity_hours")
 
   status ActivityStatus @default(DRAFT)
 

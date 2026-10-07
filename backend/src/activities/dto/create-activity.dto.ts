@@ -1,5 +1,13 @@
-import { IsDateString, IsEnum, IsOptional, IsString, IsUrl } from 'class-validator';
-import { ActivityStatus } from '../../../generated/prisma/client';
+import {
+  IsDateString,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUrl,
+  Min,
+} from 'class-validator';
+import { ActivityHourCategory, ActivityStatus } from '../../../generated/prisma/client';
 
 export class CreateActivityDto {
   @IsString()
@@ -26,6 +34,15 @@ export class CreateActivityDto {
   @IsOptional()
   @IsDateString()
   registrationDeadline?: string;
+
+  @IsOptional()
+  @IsEnum(ActivityHourCategory)
+  activityHourCategory?: ActivityHourCategory;
+
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0.01)
+  activityHours?: number;
 
   @IsOptional()
   @IsEnum(ActivityStatus)

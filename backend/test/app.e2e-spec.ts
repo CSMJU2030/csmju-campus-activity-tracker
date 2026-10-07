@@ -103,6 +103,8 @@ describe('Activity API (e2e)', () => {
         title: 'Published activity',
         startsAt: STARTS_AT,
         endsAt: ENDS_AT,
+        activityHourCategory: 'FACULTY',
+        activityHours: 2.5,
         status: 'PUBLISHED',
       })
       .expect(201);
@@ -111,6 +113,8 @@ describe('Activity API (e2e)', () => {
       title: 'Published activity',
       startsAt: STARTS_AT,
       endsAt: ENDS_AT,
+      activityHourCategory: 'FACULTY',
+      activityHours: 2.5,
       status: 'PUBLISHED',
     });
 
@@ -119,31 +123,74 @@ describe('Activity API (e2e)', () => {
       .set(bearer(studentToken))
       .expect(200);
     expect(listing.body.data).toHaveLength(1);
+    expect(listing.body.data[0]).toMatchObject({
+      activityHourCategory: 'FACULTY',
+      activityHours: 2.5,
+    });
     expect(listing.body.meta.total).toBe(1);
   });
 
-  it('defaults newly created activities to drafts and filters by status', async () => {
-    await request(app.getHttpServer())
+  it('keeps draft and cancelled activities private from students and alumni', async () => {
+    const draft = await request(app.getHttpServer())
       .post('/api/v1/activities')
       .set(bearer(staffToken))
       .send({ title: 'Draft activity', startsAt: STARTS_AT, endsAt: ENDS_AT })
       .expect(201)
       .expect(({ body }) => expect(body.data.status).toBe('DRAFT'));
+    const cancelled = await request(app.getHttpServer())
+      .post('/api/v1/activities')
+      .set(bearer(staffToken))
+      .send({
+        title: 'Cancelled activity',
+        startsAt: STARTS_AT,
+        endsAt: ENDS_AT,
+        status: 'CANCELLED',
+      })
+      .expect(201);
 
-    const published = await request(app.getHttpServer())
-      .get('/api/v1/activities?status=PUBLISHED')
-      .set(bearer(studentToken))
-      .expect(200);
-    expect(published.body.data).toHaveLength(0);
+    for (const token of [studentToken, alumniToken]) {
+      const allActivities = await request(app.getHttpServer())
+        .get('/api/v1/activities')
+        .set(bearer(token))
+        .expect(200);
+      expect(allActivities.body.data).toHaveLength(0);
 
-    const drafts = await request(app.getHttpServer())
+      for (const status of ['DRAFT', 'CANCELLED']) {
+        const hidden = await request(app.getHttpServer())
+          .get(`/api/v1/activities?status=${status}`)
+          .set(bearer(token))
+          .expect(200);
+        expect(hidden.body.data).toHaveLength(0);
+      }
+
+      for (const id of [draft.body.data.id, cancelled.body.data.id]) {
+        await request(app.getHttpServer())
+          .get(`/api/v1/activities/${id}`)
+          .set(bearer(token))
+          .expect(404);
+      }
+    }
+
+    const staffDrafts = await request(app.getHttpServer())
       .get('/api/v1/activities?status=DRAFT')
       .set(bearer(staffToken))
       .expect(200);
-    expect(drafts.body.data).toHaveLength(1);
+    expect(staffDrafts.body.data).toHaveLength(1);
   });
 
   it('validates activity payloads and query parameters', async () => {
+    await request(app.getHttpServer())
+      .post('/api/v1/activities')
+      .set(bearer(staffToken))
+      .send({
+        title: 'Valid fractional hours',
+        startsAt: STARTS_AT,
+        endsAt: ENDS_AT,
+        activityHourCategory: 'FREE',
+        activityHours: 1.15,
+      })
+      .expect(201);
+
     await request(app.getHttpServer())
       .post('/api/v1/activities')
       .set(bearer(staffToken))
@@ -164,6 +211,69 @@ describe('Activity API (e2e)', () => {
     await request(app.getHttpServer())
       .get('/api/v1/activities?status=LIVE')
       .set(bearer(studentToken))
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .post('/api/v1/activities')
+      .set(bearer(staffToken))
+      .send({ title: 'Ends first', startsAt: ENDS_AT, endsAt: STARTS_AT })
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .post('/api/v1/activities')
+      .set(bearer(staffToken))
+      .send({
+        title: 'Late deadline',
+        startsAt: STARTS_AT,
+        endsAt: ENDS_AT,
+        registrationDeadline: '2026-12-01T09:30:00.000Z',
+      })
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .post('/api/v1/activities')
+      .set(bearer(staffToken))
+      .send({
+        title: 'Hours without category',
+        startsAt: STARTS_AT,
+        endsAt: ENDS_AT,
+        activityHours: 2,
+      })
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .post('/api/v1/activities')
+      .set(bearer(staffToken))
+      .send({
+        title: 'Invalid hours',
+        startsAt: STARTS_AT,
+        endsAt: ENDS_AT,
+        activityHourCategory: 'FACULTY',
+        activityHours: 0,
+      })
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .post('/api/v1/activities')
+      .set(bearer(staffToken))
+      .send({
+        title: 'Hours with too many decimals',
+        startsAt: STARTS_AT,
+        endsAt: ENDS_AT,
+        activityHourCategory: 'FREE',
+        activityHours: 1.234,
+      })
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .post('/api/v1/activities')
+      .set(bearer(staffToken))
+      .send({
+        title: 'Category without hours',
+        startsAt: STARTS_AT,
+        endsAt: ENDS_AT,
+        activityHourCategory: 'FACULTY',
+      })
       .expect(400);
   });
 
@@ -186,6 +296,100 @@ describe('Activity API (e2e)', () => {
       .send({ title: 'After update', status: 'PUBLISHED' })
       .expect(200);
 
-    expect(updated.body.data).toMatchObject({ title: 'After update', status: 'PUBLISHED' });
+    expect(updated.body.data).toMatchObject({
+      title: 'After update',
+      status: 'PUBLISHED',
+      activityHourCategory: null,
+      activityHours: null,
+    });
+
+    await request(app.getHttpServer())
+      .patch(`/api/v1/activities/${created.body.data.id}`)
+      .set(bearer(staffToken))
+      .send({ activityHourCategory: 'FACULTY' })
+      .expect(400);
+
+    const updatedHours = await request(app.getHttpServer())
+      .patch(`/api/v1/activities/${created.body.data.id}`)
+      .set(bearer(staffToken))
+      .send({ activityHourCategory: 'UNIVERSITY', activityHours: 3.5 })
+      .expect(200);
+    expect(updatedHours.body.data).toMatchObject({
+      activityHourCategory: 'UNIVERSITY',
+      activityHours: 3.5,
+    });
+
+    const clearedHours = await request(app.getHttpServer())
+      .patch(`/api/v1/activities/${created.body.data.id}`)
+      .set(bearer(staffToken))
+      .send({ activityHourCategory: null, activityHours: null })
+      .expect(200);
+    expect(clearedHours.body.data).toMatchObject({
+      activityHourCategory: null,
+      activityHours: null,
+    });
+
+    await request(app.getHttpServer())
+      .patch(`/api/v1/activities/${created.body.data.id}`)
+      .set(bearer(staffToken))
+      .send({ startsAt: '2026-12-01T11:00:00.000Z' })
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .patch(`/api/v1/activities/${created.body.data.id}`)
+      .set(bearer(staffToken))
+      .send({ registrationDeadline: '2026-12-01T11:00:00.000Z' })
+      .expect(400);
+  });
+
+  it.each([
+    ['staff', () => staffToken],
+    ['admin', () => adminToken],
+  ])('%s can delete an activity', async (_role, token) => {
+    const created = await request(app.getHttpServer())
+      .post('/api/v1/activities')
+      .set(bearer(token()))
+      .send({ title: 'Delete me', startsAt: STARTS_AT, endsAt: ENDS_AT })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .delete(`/api/v1/activities/${created.body.data.id}`)
+      .set(bearer(studentToken))
+      .expect(403);
+
+    await request(app.getHttpServer())
+      .delete(`/api/v1/activities/${created.body.data.id}`)
+      .set(bearer(token()))
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .get(`/api/v1/activities/${created.body.data.id}`)
+      .set(bearer(token()))
+      .expect(404);
+  });
+
+  it('allows staff to clear optional registration fields', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/api/v1/activities')
+      .set(bearer(staffToken))
+      .send({
+        title: 'Optional fields',
+        startsAt: STARTS_AT,
+        endsAt: ENDS_AT,
+        registrationUrl: 'https://example.com/signup',
+        registrationDeadline: '2026-11-30T09:00:00.000Z',
+      })
+      .expect(201);
+
+    const updated = await request(app.getHttpServer())
+      .patch(`/api/v1/activities/${created.body.data.id}`)
+      .set(bearer(staffToken))
+      .send({ registrationUrl: null, registrationDeadline: null })
+      .expect(200);
+
+    expect(updated.body.data).toMatchObject({
+      registrationUrl: null,
+      registrationDeadline: null,
+    });
   });
 });
