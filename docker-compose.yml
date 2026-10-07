@@ -86,7 +86,7 @@ services:
       - '/tmp:size=32m,uid=1000,gid=1000'
       - '/app/frontend/.next/cache:size=64m,uid=1000,gid=1000'
     ports:
-      - '127.0.0.1:3204:3000'
+      - '127.0.0.1:5003:3000'
 
 volumes:
   campus-activity-tracker-db-data:
