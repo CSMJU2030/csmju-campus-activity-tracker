@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getHealth, getMe, listActivities } from "../lib/api";
 import { formatDate, formatSlot, formatTime } from "../lib/format";
 import Shell from "./_components/Shell";
@@ -22,50 +23,100 @@ export default async function HomePage() {
 
   return (
     <Shell me={me.data} active="activities">
-      <div className="page-head">
-        <h1>กิจกรรมทั้งหมด</h1>
-        <p className="muted">ประกาศกิจกรรมของคณะ · กดปุ่มสมัครเพื่อไปยังแบบฟอร์มของผู้จัดกิจกรรม</p>
+      <section className="welcome-banner" aria-labelledby="welcome-title">
+        <div className="welcome-copy">
+          <span className="eyebrow">MAEJO UNIVERSITY · CAMPUS LIFE</span>
+          <h1 id="welcome-title">เติมสีสันให้ทุกวัน<br />ด้วยกิจกรรมที่ใช่</h1>
+          <p>สำรวจกิจกรรมที่น่าสนใจในรั้วมหาวิทยาลัย แล้วออกไปเก็บประสบการณ์ใหม่ด้วยกัน</p>
+          <div className="welcome-note">
+            <span className="welcome-note-mark" aria-hidden="true">CA</span>
+            <span>พื้นที่รวมกิจกรรมสำหรับชาวแม่โจ้</span>
+          </div>
+        </div>
+        <div className="welcome-art" aria-hidden="true">
+          <span className="art-orbit art-orbit-one" />
+          <span className="art-orbit art-orbit-two" />
+          <span className="art-card">
+            <span className="art-card-label">CAMPUS</span>
+            <span className="art-card-title">Make<br />memories.</span>
+            <span className="art-card-footer">LEARN · MEET · GROW</span>
+          </span>
+        </div>
+      </section>
+
+      <div className="section-heading">
+        <div>
+          <span className="eyebrow eyebrow-muted">WHAT'S ON</span>
+          <h2>กิจกรรมที่กำลังเปิดอยู่</h2>
+          <p className="muted">เลือกกิจกรรมที่สนใจ แล้วสมัครกับผู้จัดได้โดยตรง</p>
+        </div>
+        {activities.ok && (
+          <span className="activity-count">
+            <strong>{activities.data.length}</strong>
+            <span>กิจกรรม</span>
+          </span>
+        )}
       </div>
 
       {!activities.ok ? (
         <p className="alert">โหลดรายการกิจกรรมไม่สำเร็จ: {activities.message}</p>
       ) : activities.data.length === 0 ? (
-        <p className="muted">ยังไม่มีกิจกรรมที่ประกาศในตอนนี้</p>
+        <section className="empty-state card">
+          <span className="empty-state-mark" aria-hidden="true">CA</span>
+          <h3>กำลังเตรียมกิจกรรมใหม่</h3>
+          <p className="muted">ตอนนี้ยังไม่มีกิจกรรมประกาศ รอติดตามข่าวสารได้ที่หน้านี้</p>
+        </section>
       ) : (
-        <div className="room-grid">
-        {activities.data.map((activity) => (
-            <div key={activity.id} className="card room-card">
-              <div className="room-card-head">
-                <span className="badge">{formatSlot(activity.startsAt, activity.endsAt)}</span>
+        <div className="activity-grid">
+          {activities.data.map((activity) => (
+            <article key={activity.id} className="card activity-card">
+              <div className="activity-card-top">
+                <span className="badge">กิจกรรมที่เผยแพร่</span>
+                {activity.activityHours !== null && activity.activityHourCategory && (
+                  <span className="activity-hours">{activity.activityHours} ชั่วโมง</span>
+                )}
               </div>
-              <h2>{activity.title}</h2>
-              {activity.location && <p className="muted">{activity.location}</p>}
-              {activity.description && <p>{activity.description}</p>}
-              {activity.registrationDeadline && (
-                <p className="muted">
-                  ปิดรับสมัคร: {formatDate(activity.registrationDeadline)} ·{" "}
-                  {formatTime(activity.registrationDeadline)}
-                </p>
-              )}
-              {activity.activityHourCategory && activity.activityHours !== null && (
-                <p className="muted">
-                  ชั่วโมงกิจกรรมที่ผู้จัดระบุ:{" "}
-                  {activity.activityHourCategory === "UNIVERSITY"
-                    ? "มหาวิทยาลัย"
-                    : activity.activityHourCategory === "FACULTY"
-                      ? "คณะ"
-                      : "เสรี"}{" "}
-                  · {activity.activityHours} ชั่วโมง
-                </p>
-              )}
-              {activity.registrationUrl && (
-                <p>
+              <h3>{activity.title}</h3>
+              {activity.description && <p className="activity-description">{activity.description}</p>}
+              <div className="activity-details">
+                <div className="activity-detail">
+                  <span className="detail-label">วันและเวลา</span>
+                  <time dateTime={activity.startsAt}>{formatSlot(activity.startsAt, activity.endsAt)}</time>
+                </div>
+                {activity.location && (
+                  <div className="activity-detail">
+                    <span className="detail-label">สถานที่</span>
+                    <span>{activity.location}</span>
+                  </div>
+                )}
+                {activity.registrationDeadline && (
+                  <div className="activity-detail">
+                    <span className="detail-label">ปิดรับสมัคร</span>
+                    <time dateTime={activity.registrationDeadline}>
+                      {formatDate(activity.registrationDeadline)} · {formatTime(activity.registrationDeadline)}
+                    </time>
+                  </div>
+                )}
+              </div>
+              <div className="activity-card-footer">
+                {activity.activityHourCategory && activity.activityHours !== null && (
+                  <span className="hour-category">
+                    {activity.activityHourCategory === "UNIVERSITY"
+                      ? "ชั่วโมงมหาวิทยาลัย"
+                      : activity.activityHourCategory === "FACULTY"
+                        ? "ชั่วโมงคณะ"
+                        : "ชั่วโมงเสรี"}
+                  </span>
+                )}
+                {activity.registrationUrl ? (
                   <a className="btn btn-primary" href={activity.registrationUrl} target="_blank" rel="noreferrer">
-                    สมัครเข้าร่วม
+                    สมัครเข้าร่วม <span aria-hidden="true">↗</span>
                   </a>
-                </p>
-              )}
-            </div>
+                ) : (
+                  <span className="muted small">ติดตามรายละเอียดจากผู้จัด</span>
+                )}
+              </div>
+            </article>
           ))}
         </div>
       )}
@@ -77,35 +128,38 @@ async function SignedOut({ reason }: { reason: string | null }) {
   const health = await getHealth();
 
   return (
-    <main className="page page-narrow">
-      <section className="hero">
-        <span className="brand-mark brand-mark-lg" aria-hidden>
-          CS
-        </span>
-        <h1>ระบบแจ้งเตือนกิจกรรม</h1>
-        <p className="muted">สาขาวิชาวิทยาการคอมพิวเตอร์ มหาวิทยาลัยแม่โจ้ · Campus Activity Tracker</p>
-      </section>
-
-      <section className="card">
-        <h2>เข้าสู่ระบบด้วยบัญชี CSMJU</h2>
-        {reason && <p className="alert">{reason}</p>}
-        <p>ระบบนี้ไม่มีหน้า login ของตัวเอง ใช้บัญชีเดียวกับ CSMJU Core Hub</p>
-        <ol className="steps">
-          <li>Core Hub ให้ login (ถ้ายังไม่ได้ login)</li>
-          <li>Core Hub ตรวจว่า role ของคุณเข้าระบบนี้ได้ แล้วส่ง token กลับมาที่ /auth/callback</li>
-          <li>ระบบนี้ตรวจลายเซ็น RS256 ผ่าน JWKS แล้วตั้งคุกกี้ HttpOnly</li>
-        </ol>
-        <p>
-          <a className="btn btn-primary" href={ssoUrl}>
-            เข้าสู่ระบบผ่าน CSMJU Core Hub
+    <main className="signed-out-page">
+      <section className="signed-out-layout">
+        <div className="signed-out-intro">
+          <Link href="/" className="brand signed-out-brand">
+            <span className="brand-mark" aria-hidden="true">CA</span>
+            <span><strong>Campus Activity Tracker</strong><small>MAEJO UNIVERSITY</small></span>
+          </Link>
+          <span className="eyebrow">CAMPUS LIFE, CONNECTED</span>
+          <h1>ทุกกิจกรรมดี ๆ<br />เริ่มต้นที่นี่</h1>
+          <p>ค้นพบพื้นที่เรียนรู้ ผู้คนใหม่ ๆ และประสบการณ์ที่ทำให้ชีวิตในมหาวิทยาลัยมีความหมาย</p>
+          <div className="signed-out-art" aria-hidden="true">
+            <span className="signed-out-art-ring" />
+            <span className="signed-out-art-card">MEET<br /><strong>YOUR<br />PEOPLE</strong></span>
+          </div>
+          <span className="signed-out-caption">สาขาวิชาวิทยาการคอมพิวเตอร์ · มหาวิทยาลัยแม่โจ้</span>
+        </div>
+        <section className="card sign-in-card">
+          <span className="eyebrow eyebrow-muted">WELCOME BACK</span>
+          <h2>เข้าสู่ระบบ</h2>
+          <p className="muted">ใช้บัญชี CSMJU ของคุณเพื่อสำรวจกิจกรรมและสมัครเข้าร่วม</p>
+          {reason && <p className="alert" role="alert">{reason}</p>}
+          <a className="btn btn-primary sign-in-button" href={ssoUrl}>
+            เข้าสู่ระบบผ่าน CSMJU Core Hub <span aria-hidden="true">→</span>
           </a>
-        </p>
-        <p className="muted small">
-          สถานะ backend:{" "}
-          <span className={`badge ${health?.status === "ok" ? "badge-ok" : "badge-err"}`}>
-            {health ? `${health.status} · ${health.service ?? "-"}` : "ติดต่อไม่ได้"}
-          </span>
-        </p>
+          <p className="sign-in-note">ระบบนี้ใช้การเข้าสู่ระบบกลางของ CSMJU อย่างปลอดภัย</p>
+          <div className="backend-status">
+            <span className="backend-status-label">สถานะการเชื่อมต่อ</span>
+            <span className={`badge ${health?.status === "ok" ? "badge-ok" : "badge-err"}`}>
+              {health ? `${health.status} · ${health.service ?? "-"}` : "ติดต่อ backend ไม่ได้"}
+            </span>
+          </div>
+        </section>
       </section>
     </main>
   );

@@ -28,10 +28,10 @@ export default function Shell({
         <div className="topbar-inner">
           <Link href="/" className="brand">
             <span className="brand-mark" aria-hidden>
-              CS
+              CA
             </span>
             <span>
-              <strong>ระบบแจ้งเตือนกิจกรรม</strong>
+              <strong>กิจกรรมในรั้วมหาวิทยาลัย</strong>
               <small>สาขาวิชาวิทยาการคอมพิวเตอร์ · Campus Activity Tracker</small>
             </span>
           </Link>
