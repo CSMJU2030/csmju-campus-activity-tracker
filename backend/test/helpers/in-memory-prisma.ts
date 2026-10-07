@@ -187,7 +187,10 @@ class Table {
         clientVersion: 'in-memory',
       });
     }
-    Object.assign(row, data, { updatedAt: new Date() });
+    const definedData = Object.fromEntries(
+      Object.entries(data).filter(([, value]) => value !== undefined),
+    );
+    Object.assign(row, definedData, { updatedAt: new Date() });
     return this.withInclude(row, include);
   }
 
@@ -211,6 +214,8 @@ export class InMemoryPrisma {
     location: null,
     registrationUrl: null,
     registrationDeadline: null,
+    activityHourCategory: null,
+    activityHours: null,
     status: 'DRAFT',
   }));
 

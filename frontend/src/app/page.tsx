@@ -1,5 +1,5 @@
 import { getHealth, getMe, listActivities } from "../lib/api";
-import { formatSlot } from "../lib/format";
+import { formatDate, formatSlot, formatTime } from "../lib/format";
 import Shell from "./_components/Shell";
 
 const CORE_HUB_WEB_URL = process.env.CORE_HUB_WEB_URL ?? "http://127.0.0.1:3100";
@@ -41,6 +41,23 @@ export default async function HomePage() {
               <h2>{activity.title}</h2>
               {activity.location && <p className="muted">{activity.location}</p>}
               {activity.description && <p>{activity.description}</p>}
+              {activity.registrationDeadline && (
+                <p className="muted">
+                  ปิดรับสมัคร: {formatDate(activity.registrationDeadline)} ·{" "}
+                  {formatTime(activity.registrationDeadline)}
+                </p>
+              )}
+              {activity.activityHourCategory && activity.activityHours !== null && (
+                <p className="muted">
+                  ชั่วโมงกิจกรรมที่ผู้จัดระบุ:{" "}
+                  {activity.activityHourCategory === "UNIVERSITY"
+                    ? "มหาวิทยาลัย"
+                    : activity.activityHourCategory === "FACULTY"
+                      ? "คณะ"
+                      : "เสรี"}{" "}
+                  · {activity.activityHours} ชั่วโมง
+                </p>
+              )}
               {activity.registrationUrl && (
                 <p>
                   <a className="btn btn-primary" href={activity.registrationUrl} target="_blank" rel="noreferrer">
