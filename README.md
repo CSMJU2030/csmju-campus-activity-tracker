@@ -29,7 +29,7 @@ git checkout -b feature/campus-activity-tracker/<เรื่องที่ท�
 
 เปิด Core Hub ในเครื่องก่อน โดยให้ API อยู่ที่ `http://localhost:3000` และเว็บอยู่ที่
 `http://localhost:3100` พร้อมลงทะเบียน subsystem callback เป็น
-`http://localhost:3202/auth/callback`
+`http://localhost:3204/auth/callback`
 
 ```bash
 docker compose up -d --build
@@ -37,9 +37,9 @@ docker compose ps
 docker compose logs api
 ```
 
-บริการ `db`, `api` และ `web` ต้องเป็น `healthy` ก่อนเปิด `http://localhost:3202`
-ใน Chrome แล้วทดสอบ login ผ่าน Core Hub เว็บเปิดที่ host port `3202`; API ใช้
-port `4000` เฉพาะใน network ของ Compose และฐานข้อมูลทดสอบเปิดที่ `localhost:5435`.
+บริการ `db`, `api` และ `web` ต้องเป็น `healthy` ก่อนเปิด `http://localhost:3204`
+ใน Chrome แล้วทดสอบ login ผ่าน Core Hub เว็บเปิดที่ host port `3204`; API เปิดให้ทดสอบบน
+`localhost:4204` และใช้ port `4000` ภายใน network ของ Compose ส่วนฐานข้อมูลทดสอบเปิดที่ `localhost:5435`.
 ใช้ `docker compose down` เพื่อหยุดบริการ โดยข้อมูลฐานข้อมูลยังอยู่ใน volume.
 
 Compose นี้ตั้ง API เป็น `development` เพราะ Core Hub ในเครื่องให้ JWKS ผ่าน HTTP;

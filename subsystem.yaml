@@ -5,7 +5,7 @@ name: csmju-campus-activity-tracker          # ต้องตรงกับท
 standards_version: "1.8.1"
 conformance_level: L3                 # L1 · L2 · L3 (ระบบที่มี UI ต้องถึง L3)
 
-base_url: http://localhost:3202       # Public web origin (also hosts the SSO callback)
+base_url: http://localhost:3204       # Public web origin (also hosts the SSO callback)
 core_hub_url: http://localhost:3000
 callback_path: /auth/callback         # ต้องตรงกับ callback_url ที่ลงทะเบียนไว้
 

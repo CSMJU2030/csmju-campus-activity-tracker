@@ -4,10 +4,10 @@
   "private": true,
   "description": "CSMJU Campus Activity Tracker - Next.js frontend, sign-in through Core Hub SSO only",
   "scripts": {
-    "dev": "next dev -p 3202",
-    "start:dev": "next dev -p 3202",
+    "dev": "next dev -p 3204",
+    "start:dev": "next dev -p 3204",
     "build": "next build",
-    "start": "next start -p 3202",
+    "start": "next start -p 3204",
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
