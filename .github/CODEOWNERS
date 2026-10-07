@@ -8,3 +8,4 @@
 
 # ข้อยกเว้นกฎ (UI-01 · ARC-02) — DevOps เท่านั้นที่ approve ได้ ทีมยกเว้นกฎให้ตัวเองไม่ได้
 /.compliance-exceptions.yml @csmju2030/devops
+# lovefew
